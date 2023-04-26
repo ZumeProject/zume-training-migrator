@@ -25,35 +25,48 @@ if ( ! function_exists( 'zume_training_migrator' ) ) {
 }
 add_action( 'after_setup_theme', 'zume_training_migrator' );
 
-
-/**
- * Class Zume_Training_Migrator
- */
 class Zume_Training_Migrator {
 
+
+    /**
+     * #1 SET VARIABLES
+     */
+    public $loop_size = 500;
     public $title = 'Zume Training Migrator';
     public $description = 'Update all the pieces pages to a new post type zume_pages.';
 
-    public function run_loop( $step ){
+    /**
+     * #2 EDIT QUERY
+     */
+    public function source_query() {
         global $wpdb;
-
-        /**
-         * QUERY RECORDS
-         */
-        $results = $wpdb->get_results(
-            "SELECT pm.post_id, pm1.meta_value as location, pm2.meta_value as user_id
-                    FROM wp_3_postmeta pm
-                    LEFT JOIN wp_3_postmeta pm1 ON pm.post_id=pm1.post_id AND pm1.meta_key = 'location_grid_meta'
-                    LEFT JOIN wp_3_postmeta pm2 ON pm.post_id=pm2.post_id AND pm2.meta_key = 'zume_training_id'
-                    WHERE pm.meta_key = 'overall_status' AND pm.meta_value = 'registered_only' AND pm1.meta_value IS NULL
-                    ;"
+        return $wpdb->get_results(
+            "SELECT * FROM {$wpdb->prefix}posts WHERE post_type = 'zume_page' AND post_status = 'publish' ORDER BY ID ASC;"
             , ARRAY_A );
+    }
 
-        $total_count = count( $results );
+    /**
+     * #3 EDIT TASK TO EXECUTE
+     */
+    public function run_task( $result ) {
 
         /**
-         * RUN TASK ON RECORDS
+         * PROCESS TASK
          */
+        dt_write_log( maybe_serialize( $result) );
+
+    }
+
+
+
+    
+
+    /******************************************************************************************************************
+     * PAGE SUPPORTS
+     ******************************************************************************************************************/
+    public function run_loop( $step ){
+        $results = $this->source_query();
+        $total_count = count( $results );
         $loop_count = 0;
         $processed_count = 0;
         foreach( $results as $index => $result ) {
@@ -61,47 +74,31 @@ class Zume_Training_Migrator {
             if ( $loop_count < $step ) {
                 continue;
             }
-
             $processed_count++;
-
-            $this->run_task( $result );
-
-            if ( $processed_count > $this->limit ) {
+            $this->run_task( $index );
+            if ( $processed_count > $this->loop_size ) {
                 break;
             }
         }
-
         if ( $loop_count >= $total_count  ) {
             return;
         }
-
         ?>
         <tr>
             <td><img src="<?php echo esc_url( plugin_dir_url(__FILE__) ) ?>/spinner.svg" width="30px" alt="spinner" /></td>
         </tr>
         <script type="text/javascript">
             function nextpage() {
-                location.href = "<?php echo admin_url() ?>admin.php?page=<?php echo esc_attr( $this->token )  ?>&loop=true&step=<?php echo esc_attr( $loop_count ) ?>&nonce=<?php echo wp_create_nonce( 'loop'.get_current_user_id() ) ?>";
+                location.href = "<?php echo admin_url() ?>admin.php?page=<?php echo esc_attr( $this->token ) ?>&loop=true&step=<?php echo esc_attr( $loop_count ) ?>&nonce=<?php echo wp_create_nonce( 'loop'.get_current_user_id() ) ?>";
             }
             setTimeout( "nextpage()", 1500 );
         </script>
         <?php
     }
-
-    public function run_task( $result ) {
-
-        /**
-         * PROCESS TASK
-         */
-        dt_write_log($result);
-
-    }
     public function admin_page() {
-
         if ( !current_user_can( $this->permissions ) ) { // manage dt is a permission that is specific to Disciple Tools and allows admins, strategists and dispatchers into the wp-admin
             wp_die( 'You do not have sufficient permissions to access this page.' );
         }
-
         ?>
         <!-- Box -->
         <table class="widefat striped">
@@ -153,10 +150,8 @@ class Zume_Training_Migrator {
         </table>
         <?php
     }
-
     public $token = 'zume_training_migrator';
     public $permissions = 'manage_options';
-    public $limit = 30;
     private static $_instance = null;
     public static function instance() {
         if ( is_null( self::$_instance ) ) {
