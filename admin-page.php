@@ -40,9 +40,14 @@ class Zume_Training_Migrator {
      */
     public function source_query() {
         global $wpdb;
-        return $wpdb->get_results(
-            "SELECT * FROM {$wpdb->prefix}posts WHERE post_type = 'zume_page' AND post_status = 'publish' ORDER BY ID ASC;"
+
+        $wpdb->get_results("DELETE FROM wp_posts WHERE post_type = 'iwp_log';");
+
+        $wpdb->get_results(
+            "UPDATE wp_posts SET post_type = 'zume_pieces' WHERE ID IN (SELECT post_id FROM wp_postmeta WHERE meta_key = '_wp_page_template' and meta_value = 'template-zume-pieces-page.php');"
             , ARRAY_A );
+
+
     }
 
     /**
@@ -53,13 +58,13 @@ class Zume_Training_Migrator {
         /**
          * PROCESS TASK
          */
-        dt_write_log( maybe_serialize( $result) );
+        dt_write_log( 'Processing: ' . $result['ID'] );
 
     }
 
 
 
-    
+
 
     /******************************************************************************************************************
      * PAGE SUPPORTS
@@ -75,7 +80,7 @@ class Zume_Training_Migrator {
                 continue;
             }
             $processed_count++;
-            $this->run_task( $index );
+            $this->run_task( $result );
             if ( $processed_count > $this->loop_size ) {
                 break;
             }
