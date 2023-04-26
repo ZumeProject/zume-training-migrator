@@ -31,6 +31,8 @@ add_action( 'after_setup_theme', 'zume_training_migrator' );
  */
 class Zume_Training_Migrator {
 
+    public $title = 'Zume Training Migrator';
+    public $description = 'Update all the pieces pages to a new post type zume_pages.';
 
     public function run_loop( $step ){
         global $wpdb;
@@ -105,6 +107,7 @@ class Zume_Training_Migrator {
         <table class="widefat striped">
             <thead>
             <tr><th>Zúme Training Migrator</th></tr>
+            <tr><th>DESCRIPTION: <?php echo $this->description ?></th></tr>
             <tr>
                 <th><p style="max-width:450px"></p>
                     <p><a class="button" id="upgrade_button" href="<?php echo esc_url( trailingslashit( admin_url() ) ) ?>admin.php?page=<?php echo esc_attr( $this->token ) ?>&loop=true" disabled="true">Upgrade</a></p>
@@ -152,7 +155,6 @@ class Zume_Training_Migrator {
     }
 
     public $token = 'zume_training_migrator';
-    public $title = 'Zume Training Migrator';
     public $permissions = 'manage_options';
     public $limit = 30;
     private static $_instance = null;
@@ -168,7 +170,7 @@ class Zume_Training_Migrator {
         }
     }
     public function register_menu() {
-        add_menu_page( 'Zume Training Migrator', 'Zume Training Migrator', $this->permissions, $this->token, [ $this, 'admin_page' ], 'dashicons-admin-generic', 59 );
+        add_menu_page( 'Zume Migrator', 'Zume Migrator', $this->permissions, $this->token, [ $this, 'admin_page' ], 'dashicons-editor-customchar', 10 );
     }
     public function __toString() {
         return $this->token;
