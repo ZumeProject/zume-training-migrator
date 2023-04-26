@@ -32,8 +32,8 @@ class Zume_Training_Migrator {
      * #1 SET VARIABLES
      */
     public $loop_size = 500;
-    public $title = 'Zume Training Migrator';
     public $description = 'Update all the pieces pages to a new post type zume_pages.';
+    public $title = 'Zume Training Migrator';
 
     /**
      * #2 EDIT QUERY
@@ -47,7 +47,11 @@ class Zume_Training_Migrator {
             "UPDATE wp_posts SET post_type = 'zume_pieces' WHERE ID IN (SELECT post_id FROM wp_postmeta WHERE meta_key = '_wp_page_template' and meta_value = 'template-zume-pieces-page.php');"
             , ARRAY_A );
 
+        $wpdb->get_results(
+            "UPDATE wp_posts SET post_type = 'zume_page'  WHERE post_type = 'page'"
+            , ARRAY_A );
 
+        return [];
     }
 
     /**
@@ -58,7 +62,6 @@ class Zume_Training_Migrator {
         /**
          * PROCESS TASK
          */
-        dt_write_log( 'Processing: ' . $result['ID'] );
 
     }
 
