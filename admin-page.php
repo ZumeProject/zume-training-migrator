@@ -32,8 +32,8 @@ class Zume_Training_Migrator {
      * #1 SET VARIABLES
      */
     public $loop_size = 500;
+    public $description = 'Template';
     public $title = 'Zume Training Migrator';
-    public $description = 'Update all the pieces pages to a new post type zume_pages.';
 
     /**
      * #2 EDIT QUERY
@@ -75,7 +75,7 @@ class Zume_Training_Migrator {
                 continue;
             }
             $processed_count++;
-            $this->run_task( $index );
+            $this->run_task( $result );
             if ( $processed_count > $this->loop_size ) {
                 break;
             }
